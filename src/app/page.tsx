@@ -1,12 +1,12 @@
-import { connection } from "next/server";
+"use client";
+
+import { useEffect, useState } from "react";
 import Navbar from "@/componentes/barranav";
 import ChatbotWidget from "@/componentes/ChatbotWidget";
 import Link from "next/link";
 import { Check, Dumbbell, Clock, MapPin } from "lucide-react";
-import { PLANES_GYM, GYM_ACTUAL } from "@/lib/mock-data";
+import { PLANES_GYM, GYM_ACTUAL, Plan } from "@/lib/mock-data";
 import { obtenerCatalogoPublico } from "@/lib/api-client";
-
-//export const dynamic = "force-dynamic";
 
 interface PlanRemotoBackend {
   id: string;
@@ -20,36 +20,45 @@ interface PlanRemotoBackend {
   };
 }
 
-interface PlanVista {
-  id: string;
-  nombre: string;
-  precio: number;
-  periodo: string;
-  beneficios: string[];
-  destacado?: boolean;
-}
+export default function Home() {
+  const [nombreGimnasio, setNombreGimnasio] = useState(GYM_ACTUAL.nombreComercial);
+  const [planes, setPlanes] = useState<Plan[]>(PLANES_GYM);
+  const [horario, setHorario] = useState(
+    `${GYM_ACTUAL.horarios.semana}. ${GYM_ACTUAL.horarios.finDeSemana}`
+  );
+  const [direccion, setDireccion] = useState(GYM_ACTUAL.direccion);
 
-export default async function Home() {
-  // Declara que este Server Component consume datos en tiempo de ejecución
-  await connection();
+  useEffect(() => {
+    async function cargarDatosRemotos() {
+      try {
+        const catalogo = await obtenerCatalogoPublico("gym-esparta-cdmx");
+        if (catalogo) {
+          if (catalogo.tenantName) setNombreGimnasio(catalogo.tenantName);
+          if (catalogo.branches?.[0]?.openingHoursText) {
+            setHorario(catalogo.branches[0].openingHoursText);
+          }
+          if (catalogo.branches?.[0]?.address) {
+            setDireccion(catalogo.branches[0].address);
+          }
+          if (catalogo.plans && catalogo.plans.length > 0) {
+            const formateados: Plan[] = catalogo.plans.map((p: PlanRemotoBackend) => ({
+              id: p.id,
+              nombre: p.name,
+              precio: Number(p.price?.amount || 0),
+              periodo: p.billingPeriod === "MONTHLY" ? "mes" : "anual",
+              beneficios: [p.description || "Acceso general"],
+              destacado: p.code === "PLAN-MENSUAL",
+            }));
+            setPlanes(formateados);
+          }
+        }
+      } catch {
+        // En caso de que el backend no esté activo, mantiene los valores por defecto sin romperse
+      }
+    }
 
-  const catalogoRemoto = await obtenerCatalogoPublico("gym-esparta-cdmx");
-
-  const nombreGimnasio = catalogoRemoto?.tenantName || GYM_ACTUAL.nombreComercial;
-  const planesMostrar: PlanVista[] = catalogoRemoto?.plans && catalogoRemoto.plans.length > 0
-    ? catalogoRemoto.plans.map((p: PlanRemotoBackend) => ({
-        id: p.id,
-        nombre: p.name,
-        precio: Number(p.price?.amount || 0),
-        periodo: p.billingPeriod === "MONTHLY" ? "mes" : "anual",
-        beneficios: [p.description || "Acceso general"],
-        destacado: p.code === "PLAN-MENSUAL",
-      }))
-    : PLANES_GYM;
-
-  const horarioTexto = catalogoRemoto?.branches?.[0]?.openingHoursText || 
-    `${GYM_ACTUAL.horarios.semana}. ${GYM_ACTUAL.horarios.finDeSemana}`;
-  const direccionTexto = catalogoRemoto?.branches?.[0]?.address || GYM_ACTUAL.direccion;
+    cargarDatosRemotos();
+  }, []);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -91,7 +100,7 @@ export default async function Home() {
             </div>
             <div>
               <p className="font-semibold text-white">Horario de Servicio</p>
-              <p className="text-xs sm:text-sm text-zinc-400">{horarioTexto}</p>
+              <p className="text-xs sm:text-sm text-zinc-400">{horario}</p>
             </div>
           </div>
           <div className="flex items-center gap-4 justify-center sm:justify-start">
@@ -100,7 +109,7 @@ export default async function Home() {
             </div>
             <div>
               <p className="font-semibold text-white">Ubicación</p>
-              <p className="text-xs sm:text-sm text-zinc-400">{direccionTexto}</p>
+              <p className="text-xs sm:text-sm text-zinc-400">{direccion}</p>
             </div>
           </div>
         </div>
@@ -110,9 +119,9 @@ export default async function Home() {
       <section id="planes" className="py-20 px-4 max-w-6xl mx-auto">
         <h2 className="text-2xl sm:text-3xl font-bold text-center text-white mb-2">Membresías Disponibles</h2>
         <p className="text-center text-zinc-400 text-sm mb-12">Elige el plan que mejor se adapte a tus objetivos</p>
-        
+
         <div className="grid md:grid-cols-3 gap-6">
-          {planesMostrar.map((plan: PlanVista) => (
+          {planes.map((plan) => (
             <div
               key={plan.id}
               className={`rounded-2xl p-6 border transition flex flex-col justify-between ${
@@ -128,7 +137,7 @@ export default async function Home() {
                   <span className="text-xs text-zinc-400">/{plan.periodo}</span>
                 </div>
                 <ul className="mt-6 space-y-2.5 text-xs text-zinc-300">
-                  {plan.beneficios.map((b: string, i: number) => (
+                  {plan.beneficios.map((b, i) => (
                     <li key={i} className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-red-500 shrink-0" />
                       <span>{b}</span>
