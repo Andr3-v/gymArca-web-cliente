@@ -148,6 +148,18 @@ const handleLogout = async () => {
 
         {/* Sección de Rutina del Día (Avance de la propuesta de valor) */}
        <RutinaInteractiva />
+      
+      {/* Pie de página con enlace legal */}
+      <footer className="border-t border-zinc-800/80 py-8 text-center text-xs text-zinc-500 bg-zinc-950">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p>© 2026 {GYM_ACTUAL.nombreComercial}. Todos los derechos reservados. Impulsado por GymCore.</p>
+          <div className="flex gap-4">
+            <Link href="/aviso-privacidad" className="hover:text-zinc-300 underline transition">
+              Aviso de Privacidad
+            </Link>
+          </div>
+        </div>
+      </footer>
       </main>
 
       {/* Widget Flotante del Chatbot */}
