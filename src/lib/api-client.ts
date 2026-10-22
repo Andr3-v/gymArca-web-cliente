@@ -1,14 +1,21 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 
 export async function obtenerCatalogoPublico(tenantSlug: string = "gym-esparta-cdmx") {
+  // Si estamos en Vercel o en producción y la URL apunta a localhost, no intentar conectar
+  if (typeof window === "undefined" && BASE_URL.includes("localhost") && process.env.NODE_ENV === "production") {
+    return null;
+  }
+
   try {
     const res = await fetch(`${BASE_URL}/public/tenants/${tenantSlug}/catalog`, {
-      next: { revalidate: 60 }, // Cachear 60 segundos
+      next: { revalidate: 60 },
+      signal: AbortSignal.timeout(2000), // Timeout corto de 2s para no congelar la carga
     });
+
     if (!res.ok) return null;
     return await res.json();
-  } catch (error) {
-    console.error("Error al obtener catálogo:", error);
+  } catch {
+    // Si no hay conexión con el backend de Spring Boot, retorna null de forma segura
     return null;
   }
 }

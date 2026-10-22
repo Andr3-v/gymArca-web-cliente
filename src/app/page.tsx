@@ -1,9 +1,13 @@
+import { connection } from "next/server";
 import Navbar from "@/componentes/barranav";
 import ChatbotWidget from "@/componentes/ChatbotWidget";
 import Link from "next/link";
 import { Check, Dumbbell, Clock, MapPin } from "lucide-react";
 import { PLANES_GYM, GYM_ACTUAL } from "@/lib/mock-data";
 import { obtenerCatalogoPublico } from "@/lib/api-client";
+
+export const dynamic = "force-dynamic";
+
 interface PlanRemotoBackend {
   id: string;
   code: string;
@@ -24,13 +28,15 @@ interface PlanVista {
   beneficios: string[];
   destacado?: boolean;
 }
+
 export default async function Home() {
-  // Intenta consultar la API de Spring Boot
+  // Declara que este Server Component consume datos en tiempo de ejecución
+  await connection();
+
   const catalogoRemoto = await obtenerCatalogoPublico("gym-esparta-cdmx");
 
-  // Si el backend responde, usa sus datos; de lo contrario, usa los datos mock
   const nombreGimnasio = catalogoRemoto?.tenantName || GYM_ACTUAL.nombreComercial;
-const planesMostrar: PlanVista[] = catalogoRemoto?.plans && catalogoRemoto.plans.length > 0
+  const planesMostrar: PlanVista[] = catalogoRemoto?.plans && catalogoRemoto.plans.length > 0
     ? catalogoRemoto.plans.map((p: PlanRemotoBackend) => ({
         id: p.id,
         nombre: p.name,
