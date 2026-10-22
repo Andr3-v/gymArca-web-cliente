@@ -6,7 +6,7 @@ import { Check, Dumbbell, Clock, MapPin } from "lucide-react";
 import { PLANES_GYM, GYM_ACTUAL } from "@/lib/mock-data";
 import { obtenerCatalogoPublico } from "@/lib/api-client";
 
-export const dynamic = "force-dynamic";
+//export const dynamic = "force-dynamic";
 
 interface PlanRemotoBackend {
   id: string;
