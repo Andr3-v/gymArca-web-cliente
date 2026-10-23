@@ -15,7 +15,7 @@ const handleLogout = async () => {
   window.location.href = "/login";
 };
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
+  <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col pt-6 px-4 sm:px-8">
       {/* Barra superior del panel */}
  {/* Cabecera del Dashboard adaptativa */}
 <header className="flex flex-col gap-4 border-b border-zinc-800 pb-5">
